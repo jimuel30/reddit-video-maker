@@ -1,9 +1,17 @@
 reddit:
   base-url: https://www.reddit.com/r/
+  domain: https://www.reddit.com
 
 aws:
   access-key: <secret>
   key-id: <secret>
+
+
+assets:
+  files: src/main/resources/assets/
+  screenshots-folder: src/main/resources/assets/screenshots/
+  movie: src/main/resources/assets/movie.mp4
+
 
 spring:
   datasource:
