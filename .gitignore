@@ -5,9 +5,6 @@ target/
 !**/src/test/**/target/
 
 
-# Ignore all files and folders inside screenshots directory
-/src/main/resources/assets/screenshots/*
-!/src/main/resources/assets/screenshots/
 
 
 
@@ -43,3 +40,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+# Ignore all files and folders inside screenshots directory
+/src/main/resources/assets/screenshots/*
+!/src/main/resources/assets/screenshots/
