@@ -3,7 +3,10 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-!**/src/main/resources/assets/screenshots/
+
+
+# Ignore all files and folders inside screenshots directory
+**/src/main/resources/assets/screenshots/*
 
 ### STS ###
 .apt_generated
