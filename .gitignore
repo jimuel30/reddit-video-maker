@@ -3,6 +3,7 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+!**/src/main/resources/assets
 
 ### STS ###
 .apt_generated
@@ -19,7 +20,8 @@ target/
 *.iml
 *.ipr
 *.mp4
-
+*.mp3
+*.png
 
 ### NetBeans ###
 /nbproject/private/
@@ -30,6 +32,8 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
+
+
 
 ### VS Code ###
 .vscode/
