@@ -42,5 +42,4 @@ build/
 .vscode/
 
 
-# Ignore all files and folders inside screenshots directory
-/src/main/resources/assets/screenshots/**
+
