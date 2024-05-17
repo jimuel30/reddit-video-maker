@@ -3,8 +3,8 @@ reddit:
   domain: https://www.reddit.com
 
 aws:
-  access-key: <secret>
-  key-id: <secret>
+  secret: ${AWS_SECRET}
+  key: ${AWS_KEY}
 
 
 assets:

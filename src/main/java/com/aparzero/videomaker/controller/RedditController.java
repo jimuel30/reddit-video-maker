@@ -16,11 +16,6 @@ public class RedditController {
         this.redditService = redditService;
     }
 
-    @GetMapping("/generate")
-    public ResponseEntity<Response> generateVideo(@RequestParam String subreddit){
-        return redditService.convertSubredditPostsToVideo(subreddit);
-    }
-
     @GetMapping("/convert")
     public ResponseEntity<Response> convertToVideo(@RequestParam String url){
         return redditService.convertPostToVideo(url);

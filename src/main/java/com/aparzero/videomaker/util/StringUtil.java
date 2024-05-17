@@ -19,6 +19,9 @@ public class StringUtil {
         return text.replaceAll("[^a-zA-Z0-9]", "");
     }
 
+
+
+
 }
 
 

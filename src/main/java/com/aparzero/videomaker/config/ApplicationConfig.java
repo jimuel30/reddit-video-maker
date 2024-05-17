@@ -14,15 +14,15 @@ import org.springframework.web.client.RestTemplate;
 public class ApplicationConfig {
 
 
-    private final String ACCESS_KEY;
+    private final String SECRET;
 
-    private final String KEY_ID;
+    private final String KEY;
 
 
-    public ApplicationConfig (@Value("${aws.access-key}") final String accessKey,
-                     @Value("${aws.key-id}") final String keyId) {
-        ACCESS_KEY = accessKey;
-        KEY_ID = keyId;
+    public ApplicationConfig (@Value("${aws.secret}") final String secret,
+                     @Value("${aws.key}") final String key) {
+        SECRET = secret;
+        KEY = key;
     }
 
 
@@ -34,7 +34,7 @@ public class ApplicationConfig {
     @Bean
     public AWSCredentialsProvider awsCredentialsProvider(){
         return new AWSStaticCredentialsProvider(
-                new BasicAWSCredentials(KEY_ID,ACCESS_KEY));
+                new BasicAWSCredentials(KEY,SECRET));
     }
 
     @Bean

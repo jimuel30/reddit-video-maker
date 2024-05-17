@@ -13,7 +13,6 @@ import com.aparzero.videomaker.util.StringUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,8 +30,6 @@ public class RedditServiceImpl implements RedditService {
     private final RestTemplate restTemplate;
 
 
-    private final String BASE_URL;
-
     private final String DOMAIN;
 
     private final AutomationService automationService;
@@ -44,13 +41,11 @@ public class RedditServiceImpl implements RedditService {
     private static final Logger LOG = LoggerFactory.getLogger(RedditServiceImpl.class);
 
     public RedditServiceImpl(final RestTemplate restTemplate,
-                             @Value("${reddit.base-url}") final String baseUrl,
                              @Value("${reddit.domain}") final String domain,
                              final AutomationService automationService,
                              final @Value("${assets.screenshots-folder}") String screenShotOutput,
                              final VideoService videoService) {
         this.restTemplate = restTemplate;
-        BASE_URL = baseUrl;
         DOMAIN = domain;
         this.automationService = automationService;
         SCREENSHOT_OUTPUT = screenShotOutput;
@@ -58,53 +53,9 @@ public class RedditServiceImpl implements RedditService {
     }
 
 
-    @Override
-    public ResponseEntity<Response> convertSubredditPostsToVideo(final String subreddit) {
-
-        LOG.info("Getting subreddit data: {}",subreddit);
-
-        final String url = BASE_URL+subreddit+".json";
-        LOG.info("SUBREDDIT URL: {}",url);
-        ResponseEntity<Response> response;
-
-        try {
-            final ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class);
-            LOG.info("Subreddit Response: {}",responseEntity.getStatusCode());
-            final List<RedditData> redditPosts = parseRedditResponse(responseEntity.getBody());
-
-            final String folderName=subreddit.concat("-").concat(NameUtil.generateUniqueName())+"/";
-            final String destination = SCREENSHOT_OUTPUT.concat(folderName);
-
-
-            final String title = StringUtil.processText(redditPosts.get(7).getTitle());
-            final VideoResource postResource = automationService.processPost(redditPosts.get(7).getUrl(),redditPosts.get(7).getName(),destination,title);
-            final List<VideoResource>commentResources = automationService.processComments(redditPosts.get(7).getUrl(),redditPosts.get(7).getId(),destination);
-
-
-
-            LOG.info("Number of post's video resources: {}",commentResources.size());
-            response = ResponseEntityUtil.successResponse("SUCCESS",redditPosts);
-
-        }
-        catch (HttpStatusCodeException e){
-            LOG.info(e.getMessage());
-            response = ResponseEntityUtil.fail(e.getMessage(), e.getStatusCode().value());
-        }
-        catch (Exception e){
-            //resource access
-            //parse exception
-            //generic
-            LOG.info(e.getMessage());
-            response = ResponseEntityUtil.fail(e.getMessage(), 500);
-        }
-
-        return response;
-    }
 
     @Override
     public ResponseEntity<Response> convertPostToVideo(final String postUrl) {
-
-
 
         final String url = postUrl+".json";
         LOG.info("POST URL: {}",url);
@@ -154,13 +105,8 @@ public class RedditServiceImpl implements RedditService {
             LOG.info(e.getMessage());
             response = ResponseEntityUtil.fail(e.getMessage(), 500);
         }
-
         return response;
-
-
     }
-
-
 
 
     private List<VideoResource> arrangeVideoSources(VideoResource post, List<VideoResource> comments){
@@ -176,19 +122,6 @@ public class RedditServiceImpl implements RedditService {
     }
 
 
-    private List<RedditData> parseRedditResponse(final String response) throws ParseException {
-        final List<RedditData> redditDataList = new ArrayList<>();
-        final JSONObject redditBody = (JSONObject) new JSONParser().parse(response);
-        final JSONObject redditData = (JSONObject)redditBody.get("data");
-        final JSONArray children = (JSONArray) redditData.get("children");
-
-        for (Object child : children) {
-            final JSONObject post = (JSONObject) child;
-            redditDataList.add(convertJsonObjectToRedditData(post));
-        }
-        return redditDataList;
-    }
-
     private RedditData convertJsonObjectToRedditData(final JSONObject post){
         final JSONObject actualPost = (JSONObject) post.get("data");
         final  String name = (String) actualPost.get("name");
@@ -199,11 +132,5 @@ public class RedditServiceImpl implements RedditService {
         final String title  = (String) actualPost.get("title");
         return new RedditData(url,name,selfText,id,commentsUrl,title);
     }
-
-
-
-
-
-
 
 }

@@ -1,5 +1,6 @@
 package com.aparzero.videomaker.service.impl;
 import com.aparzero.videomaker.constant.RedditConstant;
+import com.aparzero.videomaker.constant.VoiceConstant;
 import com.aparzero.videomaker.domain.VideoResource;
 import com.aparzero.videomaker.service.AutomationService;
 import com.aparzero.videomaker.service.VoiceService;
@@ -49,10 +50,14 @@ public class AutomationServiceImpl implements AutomationService {
 
 
             element.screenshot(new Locator.ScreenshotOptions().setPath(Paths.get(imageOutput)));
+
+            page.close();
             browser.close();
 
+            final String greeting = title.concat(VoiceConstant.FOLLOW_SCRIPT);
+
             final String voiceOutput  =  outputFolder.concat(fileName).concat(".mp3");
-            voiceService.generateVoice(title,outputFolder,fileName.concat(".mp3"));
+            voiceService.generateVoice(greeting,outputFolder,fileName.concat(".mp3"));
             LOG.info("Post Voice saved to: {}", voiceOutput);
 
 
@@ -62,16 +67,10 @@ public class AutomationServiceImpl implements AutomationService {
         }
     }
 
-
-
-
-
-
-
     @Override
     public  List<VideoResource> processComments(final String url,
                                                 final String postId,
-                                                final String outputFolder) throws InterruptedException {
+                                                final String outputFolder) {
         LOG.info("PROCESSING COMMENT: {}", postId);
         LOG.info("NAVIGATING URL: {}", url);
         final List<VideoResource> videoResources = new ArrayList<>();
@@ -88,9 +87,10 @@ public class AutomationServiceImpl implements AutomationService {
             LOG.info("TOTAL COMMENTS GATHERED: {}", comments.size());
 
 
-            final int commentLimit = Math.min(comments.size(), 6);
+            final int commentLimit = Math.min(comments.size(), 5);
 
-            for (int i = 1; i < commentLimit; i++) {
+
+            for (int i = 0; i < commentLimit; i++) {
                 try {
                     final ElementHandle comment = comments.get(i);
                     comment.scrollIntoViewIfNeeded();
@@ -105,8 +105,9 @@ public class AutomationServiceImpl implements AutomationService {
                         LOG.info("Screenshot saved to: {}", imageOutput);
 
 
-
                         final String commentContent = (String) comment.evaluate(RedditConstant.COMMENT_CONTENT_EXPRESSION);
+
+
                         LOG.info("Comment: {}", commentContent);
 
                         final String voiceOutput  =  outputFolder.concat(fileName).concat(".mp3");
@@ -116,11 +117,12 @@ public class AutomationServiceImpl implements AutomationService {
                     }
 
                 }
-                catch (Exception e) {
+                catch (InterruptedException e) {
                     LOG.info("Exception: {}", e.getMessage());
                    }
             }
 
+            page.close();
             browser.close();
 
             LOG.info("PROCESSING COMMENTS SUCCESS....");
