@@ -128,11 +128,11 @@ public class VideoServiceImpl implements VideoService {
             int exitCode = processObject.getProcess().waitFor();
 
             String output = processObject.getOutputStream().toString();
-            LOG.info("FFmpeg Output: {}", output);
+            LOG.info("Trimmed Output: {}", output);
 
             String error = processObject.getErrorStream().toString();
             if (!error.isEmpty()) {
-                LOG.error("FFmpeg Error: {}", error);
+                LOG.error("Trimming Error: {}", error);
             }
 
             if (exitCode == 0) {
@@ -149,34 +149,45 @@ public class VideoServiceImpl implements VideoService {
     public double getAudioLength(final String filePath) throws IOException, InterruptedException, ParseException {
         LOG.info("Getting audio Length of: {}", filePath);
 
-        // Build the ffprobe command
         final String command = FFMpegConstant.GET_AUDIO_LENGTH_COMMAND + filePath;
         LOG.info("Executing command: {}", command);
 
-        // Execute the command and capture the output
-        Process process = Runtime.getRuntime().exec(command);
-        process.waitFor();
+        try {
+            final List<String> arguments = Arrays.asList(command.split(" ")); // Split the command string
 
-        StringBuilder output = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            output.append(line);
+            final ProcessBuilder processBuilder = new ProcessBuilder(arguments);
+            final ProcessObject processObject = ProcessUtil.displayProcess(processBuilder);
+            int exitCode = processObject.getProcess().waitFor();
+
+            String output = processObject.getOutputStream().toString();
+            LOG.info("Audio Length Output: {}", output);
+
+            String error = processObject.getErrorStream().toString();
+            if (!error.isEmpty()) {
+                LOG.error("Getting audio length  Error: {}", error);
+            }
+
+            if (exitCode == 0) {
+                final JSONParser jsonParser = new JSONParser();
+                final Object parsedObject = jsonParser.parse(String.valueOf(output));
+                String jsonString = parsedObject.toString(); // convert to string
+                LOG.info("MP3 Data: {}", jsonString);
+
+                // Assuming the parsedObject is a JSONObject (verify!)
+                final JSONObject format = (JSONObject) ((JSONObject) parsedObject).get("format");
+                final String durationString = format.get("duration").toString();
+                LOG.info("Duration: {}", durationString);
+                return Double.parseDouble(durationString);
+            } else {
+                throw new IOException("Failed to trim video. FFmpeg exit code: " + exitCode);
+            }
+
+        } catch (InterruptedException | IOException e) {
+            throw new IOException("Error executing FFmpeg command: " + e.getMessage());
         }
-        reader.close();
 
-        // Parse the JSON output to extract duration
-        final JSONParser jsonParser = new JSONParser();
-        final Object parsedObject = jsonParser.parse(String.valueOf(output));
-        String jsonString = parsedObject.toString(); // convert to string
-        LOG.info("MP3 Data: {}", jsonString);
-
-        // Assuming the parsedObject is a JSONObject (verify!)
-        final JSONObject format = (JSONObject) ((JSONObject) parsedObject).get("format");
-        final String durationString = format.get("duration").toString();
-        LOG.info("Duration: {}", durationString);
-        return Double.parseDouble(durationString);
     }
+
 
 
     public double getTotalAudioLength(List<VideoResource> videoResourceList) throws IOException, ParseException, InterruptedException {
@@ -186,7 +197,6 @@ public class VideoServiceImpl implements VideoService {
             totalAudioLength += getAudioLength(videoResource.getAudioUrl());
         }
         return totalAudioLength;
-
     }
 
 
