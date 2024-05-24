@@ -47,8 +47,6 @@ public class VideoServiceImpl implements VideoService {
         final double totalAudioLength = getTotalAudioLength(videoResourceList);
         final String formattedTitle = StringUtil.removeSpecialChar(title);
 
-
-
         // Trim base video (assuming you have a separate method for this)
         String trimmedVideoPath = trimBaseVideo(totalAudioLength, outputFolder);
         LOG.info("Trimmed video path: {}", trimmedVideoPath);
@@ -86,24 +84,12 @@ public class VideoServiceImpl implements VideoService {
             try {
                 final List<String> arguments = Arrays.asList(command.split(" ")); // Split the command string
 
-                final ProcessBuilder processBuilder = new ProcessBuilder(arguments);
-                final ProcessObject processObject = ProcessUtil.displayProcess(processBuilder);
-                int exitCode = processObject.getProcess().waitFor();
+                final String output = executeProcess(arguments);
 
-                // Print logs
-                String output = processObject.getOutputStream().toString();
-                LOG.info("FFmpeg Output: {}", output);
+                LOG.info("Video Output: {}", output);
 
-                String error = processObject.getErrorStream().toString();
-                if (!error.isEmpty()) {
-                    LOG.error("FFmpeg Error: {}", error);
-                }
+                outputVideoPath = editedPath;
 
-                if (exitCode == 0) {
-                    outputVideoPath = editedPath;
-                } else {
-                    throw new IOException("Failed to trim video. FFmpeg exit code: " + exitCode);
-                }
             } catch (InterruptedException | IOException e) {
                 throw new IOException("Error executing FFmpeg command: " + e.getMessage());
             }
@@ -123,26 +109,13 @@ public class VideoServiceImpl implements VideoService {
         try {
             final List<String> arguments = Arrays.asList(ffmpegCommand.split(" ")); // Split the command string
 
-            final ProcessBuilder processBuilder = new ProcessBuilder(arguments);
-            final ProcessObject processObject = ProcessUtil.displayProcess(processBuilder);
-            int exitCode = processObject.getProcess().waitFor();
+            final String output = executeProcess(arguments);
 
-            String output = processObject.getOutputStream().toString();
-            LOG.info("Trimmed Output: {}", output);
-
-            String error = processObject.getErrorStream().toString();
-            if (!error.isEmpty()) {
-                LOG.error("Trimming Error: {}", error);
-            }
-
-            if (exitCode == 0) {
-                return trimmedVideoPath;
-            } else {
-                throw new IOException("Failed to trim video. FFmpeg exit code: " + exitCode);
-            }
+            LOG.info("Trim Output: {}", output);
+            return trimmedVideoPath;
 
         } catch (InterruptedException | IOException e) {
-            throw new IOException("Error executing FFmpeg command: " + e.getMessage());
+            throw new IOException(FFMpegConstant.FFMPEG_EXCEPTION+ e.getMessage());
         }
     }
 
@@ -155,38 +128,45 @@ public class VideoServiceImpl implements VideoService {
         try {
             final List<String> arguments = Arrays.asList(command.split(" ")); // Split the command string
 
-            final ProcessBuilder processBuilder = new ProcessBuilder(arguments);
-            final ProcessObject processObject = ProcessUtil.displayProcess(processBuilder);
-            int exitCode = processObject.getProcess().waitFor();
+            final String output = executeProcess(arguments);
 
-            String output = processObject.getOutputStream().toString();
-            LOG.info("Audio Length Output: {}", output);
+            final JSONParser jsonParser = new JSONParser();
+            final Object parsedObject = jsonParser.parse(output);
 
-            String error = processObject.getErrorStream().toString();
-            if (!error.isEmpty()) {
-                LOG.error("Getting audio length  Error: {}", error);
-            }
+           final JSONObject format = (JSONObject) ((JSONObject) parsedObject).get("format");
+           final String durationString = format.get("duration").toString();
+            LOG.info("Duration: {}", durationString);
+            return Double.parseDouble(durationString);
 
-            if (exitCode == 0) {
-                final JSONParser jsonParser = new JSONParser();
-                final Object parsedObject = jsonParser.parse(String.valueOf(output));
-                String jsonString = parsedObject.toString(); // convert to string
-                LOG.info("MP3 Data: {}", jsonString);
-
-                // Assuming the parsedObject is a JSONObject (verify!)
-                final JSONObject format = (JSONObject) ((JSONObject) parsedObject).get("format");
-                final String durationString = format.get("duration").toString();
-                LOG.info("Duration: {}", durationString);
-                return Double.parseDouble(durationString);
-            } else {
-                throw new IOException("Failed to trim video. FFmpeg exit code: " + exitCode);
-            }
 
         } catch (InterruptedException | IOException e) {
-            throw new IOException("Error executing FFmpeg command: " + e.getMessage());
+            throw new IOException(FFMpegConstant.FFMPEG_EXCEPTION+ e.getMessage());
         }
 
     }
+
+
+
+
+    public String executeProcess(final List<String> arguments ) throws IOException, InterruptedException {
+        final ProcessBuilder processBuilder = new ProcessBuilder(arguments);
+        final ProcessObject processObject = ProcessUtil.displayProcess(processBuilder);
+        int exitCode = processObject.getProcess().waitFor();
+
+        String output = processObject.getOutputStream().toString();
+
+
+        if(exitCode != 0){
+            throw new IOException("Failed to trim video. FFmpeg exit code: " + exitCode);
+        }
+
+        return output;
+    }
+
+
+
+
+
 
 
 

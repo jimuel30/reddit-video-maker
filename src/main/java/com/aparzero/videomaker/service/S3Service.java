@@ -1,2 +1,9 @@
-package com.aparzero.videomaker.service;public interface S3Service {
+package com.aparzero.videomaker.service;
+
+import java.io.IOException;
+
+public interface S3Service {
+
+    String saveToS3(String videoPath) throws IOException;
 }
+

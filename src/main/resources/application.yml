@@ -5,6 +5,7 @@ reddit:
 aws:
   secret: ${AWS_SECRET}
   key: ${AWS_KEY}
+  bucket: reddit-video-aparzero
 
 
 assets:
@@ -29,9 +30,3 @@ spring:
         format_sql: true
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-server:
-
-
-gmail:
-  email: <secret>
-  password: <secret>

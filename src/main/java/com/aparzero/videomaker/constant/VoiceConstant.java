@@ -7,5 +7,5 @@ public class VoiceConstant {
 
 
 
-    public static final String FOLLOW_SCRIPT =", If you enjoy this content, and be sure to follow and subscribe for more!";
+    public static final String FOLLOW_SCRIPT =", If you enjoy this content, and be sure to follow and subscribe  to this page for more!";
 }

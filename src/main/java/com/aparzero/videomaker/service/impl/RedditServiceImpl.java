@@ -4,6 +4,9 @@ package com.aparzero.videomaker.service.impl;
 import com.aparzero.videomaker.domain.RedditData;
 import com.aparzero.videomaker.domain.Response;
 import com.aparzero.videomaker.domain.VideoResource;
+import com.aparzero.videomaker.enums.Status;
+import com.aparzero.videomaker.model.RedditVideo;
+import com.aparzero.videomaker.repo.RedditVideoRepo;
 import com.aparzero.videomaker.service.AutomationService;
 import com.aparzero.videomaker.service.RedditService;
 import com.aparzero.videomaker.service.VideoService;
@@ -22,7 +25,11 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 public class RedditServiceImpl implements RedditService {
@@ -40,26 +47,55 @@ public class RedditServiceImpl implements RedditService {
 
     private static final Logger LOG = LoggerFactory.getLogger(RedditServiceImpl.class);
 
+    private final RedditVideoRepo redditVideoRepo;
+
+
+
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+
     public RedditServiceImpl(final RestTemplate restTemplate,
                              @Value("${reddit.domain}") final String domain,
                              final AutomationService automationService,
                              final @Value("${assets.screenshots-folder}") String screenShotOutput,
-                             final VideoService videoService) {
+                             final VideoService videoService,
+                             final RedditVideoRepo redditVideoRepo) {
         this.restTemplate = restTemplate;
         DOMAIN = domain;
         this.automationService = automationService;
         SCREENSHOT_OUTPUT = screenShotOutput;
         this.videoService = videoService;
+        this.redditVideoRepo = redditVideoRepo;
+    }
+
+    @Override
+    public ResponseEntity<Response> processPost(final String post) {
+        final RedditVideo redditVideo = new RedditVideo();
+        redditVideo.setUrl(post);
+        redditVideo.setDateRequested(new Date());
+        redditVideo.setStatus(Status.PROCESSING);
+
+        final RedditVideo savedRedditVideo = redditVideoRepo.save(redditVideo);
+
+        executorService.submit(() -> convertPostToVideo(savedRedditVideo));
+
+
+        return ResponseEntityUtil.successResponse("QUE",redditVideo);
+    }
+
+    @Override
+    public ResponseEntity<Response> getRedditVideo(long videoId) {
+
+        final Optional<RedditVideo> redditVideo = redditVideoRepo.findById(videoId);
+        return redditVideo.map(video -> ResponseEntityUtil.successResponse("GET", video)).orElseGet(() -> ResponseEntityUtil.fail("NOT FOUND", 404));
     }
 
 
+    public void convertPostToVideo(final RedditVideo redditVideo) {
 
-    @Override
-    public ResponseEntity<Response> convertPostToVideo(final String postUrl) {
-
+        final String postUrl = redditVideo.getUrl();
         final String url = postUrl+".json";
         LOG.info("POST URL: {}",url);
-        ResponseEntity<Response> response;
 
         try {
             final ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class);
@@ -86,27 +122,35 @@ public class RedditServiceImpl implements RedditService {
             final List<VideoResource> arrangedVideoResources = arrangeVideoSources(postResource,commentResources);
             final String result = videoService.createVideo(arrangedVideoResources,destination,redditPost.getTitle());
 
-            response = ResponseEntityUtil.successResponse("SUCCESS",result);
+            LOG.info("DONE: {}",result);
 
 
+           redditVideo.setUrl(result);
+           redditVideo.setStatus(Status.DONE);
+
         }
-        catch (HttpStatusCodeException e){
+        catch (HttpStatusCodeException | InterruptedException e){
             LOG.info(e.getMessage());
-            response = ResponseEntityUtil.fail(e.getMessage(), e.getStatusCode().value());
-        }
-        catch (InterruptedException e){
-            LOG.info(e.getMessage());
-            response = ResponseEntityUtil.fail(e.getMessage(),400);
+            redditVideo.setStatus(Status.FAILED);
         }
         catch (Exception e){
             //resource access
             //parse exception
             //generic
             LOG.info(e.getMessage());
-            response = ResponseEntityUtil.fail(e.getMessage(), 500);
+            redditVideo.setStatus(Status.FAILED);
         }
-        return response;
+
+        redditVideoRepo.save(redditVideo);
     }
+
+
+    public void deleteTempFiles(final String folder){
+
+    }
+
+
+
 
 
     private List<VideoResource> arrangeVideoSources(VideoResource post, List<VideoResource> comments){

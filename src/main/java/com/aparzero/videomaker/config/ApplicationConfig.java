@@ -3,8 +3,11 @@ package com.aparzero.videomaker.config;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.polly.AmazonPolly;
 import com.amazonaws.services.polly.AmazonPollyClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,8 +43,21 @@ public class ApplicationConfig {
     @Bean
     public AmazonPolly amazonPolly() {
         return AmazonPollyClientBuilder.standard()
-                .withRegion("us-east-1") // Replace with your desired AWS region (e.g., Regions.US_EAST_1)
+                .withRegion(Regions.AP_SOUTHEAST_2) // Replace with your desired AWS region (e.g., Regions.US_EAST_1)
                 .withCredentials(awsCredentialsProvider())
                 .build();
     }
+
+
+
+
+    @Bean
+    public AmazonS3 amazonS3(){
+        return AmazonS3ClientBuilder.standard()
+                .withRegion(Regions.AP_SOUTHEAST_2)
+                .withCredentials(new AWSStaticCredentialsProvider(
+                        new BasicAWSCredentials(KEY, SECRET)))
+                .build();
+    }
+
 }

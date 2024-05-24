@@ -45,7 +45,8 @@ public class AutomationServiceImpl implements AutomationService {
             page.setViewportSize(10_000, 844);
             page.navigate(url);
             final String fileName = NameUtil.generateUniqueName();
-            final String imageOutput = outputFolder.concat(fileName).concat(".png");
+            final String imageFolder = "images/".concat(fileName);
+            final String imageOutput = outputFolder.concat(imageFolder).concat(".png");
             final Locator element = page.locator("#" + name);
 
 
@@ -96,8 +97,11 @@ public class AutomationServiceImpl implements AutomationService {
                     comment.scrollIntoViewIfNeeded();
                     Thread.sleep(1000); // Add a 1-second delay to ensure the element is fully loaded
 
-                    final String fileName = NameUtil.generateUniqueName();
-                    final  String imageOutput = outputFolder.concat(fileName).concat(".png");
+                    final String fileName = (NameUtil.generateUniqueName());
+
+                    final String imageFolder = "images/".concat(fileName);
+                    final  String imageOutput = outputFolder.concat(imageFolder).concat(".png");
+
 
                     final boolean captureSuccess = captureScreenshot( comment,imageOutput); //screenshot comment
 
@@ -115,7 +119,6 @@ public class AutomationServiceImpl implements AutomationService {
                         LOG.info("Voice saved to: {}", voiceOutput);
                         videoResources.add(new VideoResource(imageOutput,voiceOutput));
                     }
-
                 }
                 catch (InterruptedException e) {
                     LOG.info("Exception: {}", e.getMessage());
@@ -128,7 +131,6 @@ public class AutomationServiceImpl implements AutomationService {
             LOG.info("PROCESSING COMMENTS SUCCESS....");
         }
         return videoResources;
-
     }
 
 
