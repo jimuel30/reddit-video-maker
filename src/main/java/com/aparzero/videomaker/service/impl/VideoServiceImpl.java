@@ -138,7 +138,6 @@ public class VideoServiceImpl implements VideoService {
             LOG.info("Duration: {}", durationString);
             return Double.parseDouble(durationString);
 
-
         } catch (InterruptedException | IOException e) {
             throw new IOException(FFMpegConstant.FFMPEG_EXCEPTION+ e.getMessage());
         }
@@ -154,21 +153,12 @@ public class VideoServiceImpl implements VideoService {
         int exitCode = processObject.getProcess().waitFor();
 
         String output = processObject.getOutputStream().toString();
-
-
         if(exitCode != 0){
             throw new IOException("Failed to trim video. FFmpeg exit code: " + exitCode);
         }
 
         return output;
     }
-
-
-
-
-
-
-
 
     public double getTotalAudioLength(List<VideoResource> videoResourceList) throws IOException, ParseException, InterruptedException {
 

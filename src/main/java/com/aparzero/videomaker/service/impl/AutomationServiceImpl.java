@@ -29,6 +29,16 @@ public class AutomationServiceImpl implements AutomationService {
     }
 
 
+
+
+    /**
+     @param url the path of  the post from reddit
+     @param name name of the post
+     @param outputFolder destination on which the screenshot will be saved
+     @param title the title of the post
+     @return output screenshot and the audio from the post title text
+     */
+
     @Override
     public VideoResource processPost(final String url,
                                      final String name,
@@ -68,6 +78,12 @@ public class AutomationServiceImpl implements AutomationService {
         }
     }
 
+    /**
+     @param postId  the id of the post
+     @param url the path of  the post from reddit
+     @param outputFolder destination on which the screenshot will be saved
+     @return output screenshot and the audio from the post title text
+     */
     @Override
     public  List<VideoResource> processComments(final String url,
                                                 final String postId,
@@ -134,6 +150,11 @@ public class AutomationServiceImpl implements AutomationService {
     }
 
 
+    /**
+     @param element the html element to be screenshotted
+     @param outputFolder destination on which the screenshot will be saved
+     @return  screenshot is successful or not
+     */
     public boolean  captureScreenshot(final ElementHandle element,
                                       final String outputFolder) {
 
