@@ -3,7 +3,9 @@ package com.aparzero.videomaker.service.impl;
 
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
@@ -16,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.io.*;
 import java.net.URL;
+import java.util.Date;
 
 @Service
 public class S3ServiceImpl implements S3Service {
@@ -61,7 +64,12 @@ public class S3ServiceImpl implements S3Service {
         }
 
         // Return the object key
-        final URL url = amazonS3.getUrl(BUCKET, objectKey);
+        final GeneratePresignedUrlRequest urlRequest = new GeneratePresignedUrlRequest(BUCKET, objectKey)
+                .withMethod(HttpMethod.GET)
+                .withExpiration(new Date(System.currentTimeMillis() + 3600000)); // 1 hour
+
+        final URL url = amazonS3.generatePresignedUrl(urlRequest);
+
         return url.toString();
     }
 

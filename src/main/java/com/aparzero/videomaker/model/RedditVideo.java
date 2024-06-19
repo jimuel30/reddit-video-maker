@@ -27,6 +27,7 @@ public class RedditVideo {
 
     private Date dateRequested;
 
+    @Column(columnDefinition = "TEXT")
     private String url;
 
 
