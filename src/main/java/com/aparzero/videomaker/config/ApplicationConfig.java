@@ -36,8 +36,8 @@ public class ApplicationConfig {
 
     @Bean
     public AWSCredentialsProvider awsCredentialsProvider(){
-        return new AWSStaticCredentialsProvider(
-                new BasicAWSCredentials(KEY,SECRET));
+            return new AWSStaticCredentialsProvider(
+                    new BasicAWSCredentials(KEY,SECRET));
     }
 
     @Bean

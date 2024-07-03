@@ -7,10 +7,7 @@ import com.aparzero.videomaker.domain.VideoResource;
 import com.aparzero.videomaker.enums.Status;
 import com.aparzero.videomaker.model.RedditVideo;
 import com.aparzero.videomaker.repo.RedditVideoRepo;
-import com.aparzero.videomaker.service.AutomationService;
-import com.aparzero.videomaker.service.RedditService;
-import com.aparzero.videomaker.service.S3Service;
-import com.aparzero.videomaker.service.VideoService;
+import com.aparzero.videomaker.service.*;
 import com.aparzero.videomaker.util.NameUtil;
 import com.aparzero.videomaker.util.ResponseEntityUtil;
 import com.aparzero.videomaker.util.StringUtil;
@@ -49,6 +46,8 @@ public class RedditServiceImpl implements RedditService {
 
     private final VideoService  videoService;
 
+    private final NotificationService notificationService;
+
     private static final Logger LOG = LoggerFactory.getLogger(RedditServiceImpl.class);
 
     private final RedditVideoRepo redditVideoRepo;
@@ -65,6 +64,7 @@ public class RedditServiceImpl implements RedditService {
                              final AutomationService automationService,
                              final @Value("${assets.screenshots-folder}") String screenShotOutput,
                              final VideoService videoService,
+                             final NotificationService notificationService,
                              final RedditVideoRepo redditVideoRepo,
                              final S3Service s3Service) {
         this.restTemplate = restTemplate;
@@ -72,6 +72,7 @@ public class RedditServiceImpl implements RedditService {
         this.automationService = automationService;
         SCREENSHOT_OUTPUT = screenShotOutput;
         this.videoService = videoService;
+        this.notificationService = notificationService;
         this.redditVideoRepo = redditVideoRepo;
         this.s3Service = s3Service;
     }
@@ -88,6 +89,7 @@ public class RedditServiceImpl implements RedditService {
         redditVideo.setUrl(post);
         redditVideo.setDateRequested(new Date());
         redditVideo.setStatus(Status.PROCESSING);
+        redditVideo.setTitle(NameUtil.extractTitle(post));
 
         final RedditVideo savedRedditVideo = redditVideoRepo.save(redditVideo);
 
@@ -164,7 +166,8 @@ public class RedditServiceImpl implements RedditService {
             LOG.info("Generic Exception: {}",e.getMessage());
             redditVideo.setStatus(Status.FAILED);
         }
-        redditVideoRepo.save(redditVideo);
+        notificationService.sendNotification(redditVideoRepo.save(redditVideo));
+
     }
 
 

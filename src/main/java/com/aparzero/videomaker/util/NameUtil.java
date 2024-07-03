@@ -11,4 +11,18 @@ public class NameUtil {
         long timestamp = System.currentTimeMillis();
         return formatter.format(new Date(timestamp));
     }
+
+    public static String extractTitle(final String redditUrl){
+        final int lastIndex = redditUrl.lastIndexOf("/");
+        int startIndex = 0;
+        char[] chars = redditUrl.toCharArray();
+
+        for (int i = lastIndex-1; i > 25; i--) {
+            if(chars[i] == '/'){
+                startIndex = i;
+                break;
+            }
+        }
+        return redditUrl.substring(startIndex+1,lastIndex);
+    }
 }

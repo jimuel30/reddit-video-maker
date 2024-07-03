@@ -13,6 +13,9 @@ assets:
   screenshots-folder: src/main/resources/assets/screenshots/
   movie: src/main/resources/assets/movie.mp4
 
+ws-broker:
+  notify-url: http://localhost:8081/notifyFrontEnd
+
 
 spring:
   datasource:

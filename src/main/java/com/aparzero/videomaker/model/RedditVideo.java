@@ -30,6 +30,8 @@ public class RedditVideo {
     @Column(columnDefinition = "TEXT")
     private String url;
 
+    private String title;
+
 
 
 }
